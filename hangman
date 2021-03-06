@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# for i in a b c d e f g h i j k l m n o p q r s t u v w x y z ; do echo $(grep -E '^[a-z]{3}$' /usr/share/dict/words| grep -Ev '[anoi]'| grep '.e.' | grep -c $i; echo $i) ; done | sort -n
+
+word_list="${WORDLIST:-/usr/share/dict/words}"
+used_letters=($(echo "$*" | grep -o '[a-z]' | sort -u ))
+
+IFS=
+case ${#used_letters[*]} in
+  0) letters_re=. ;;
+  *) letters_re="[^${used_letters[*]}]" ;;
+esac
+IFS=$'\n'
+
+#TODO: get rid of 'grep -vE '[^a-z]' /usr/share/dict/words
+words=($(
+  grep -vE '[^a-z]' "$word_list" \
+  | grep -E "^${1//[^a-z]/$letters_re}\$"
+))
+
+# TODO:
+# Fix the RE to replace "." with '[^<letters-correct><letters-wrong>]'
+## get words that match $1; reject those with letters in $2
+#words="$(
+#  grep -vE '[^a-z]' /usr/share/dict/words \
+#  | grep "^${1//-/.}$" \
+#  | grep -Ev "[${2:--}]"
+#)"
+
+word_count="${#words[*]}"
+case $word_count in
+  1) s='' ;;
+  *) s=s ;;
+esac
+echo "$word_count word$s"
+
+for i in {a..z}; do
+  [[ "${1//$i/}" != "$1" ]] && continue
+  count="$(echo "${words[*]}" | grep -c $i)"
+  [[ $count -eq 0 ]] && continue
+  printf '%5d: %s (%d%%)\n' "$count" $i $(( 100 * count / word_count ))
+done \
+| sort -b -k 1rn,2
