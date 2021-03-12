@@ -41,3 +41,6 @@ for i in {a..z}; do
   printf '%5d: %s (%d%%)\n' "$count" $i $(( 100 * count / word_count ))
 done \
 | sort -b -k 1rn,2
+
+
+# grep -E '^[a-z]{8}$' /usr/share/dict/words|grep -v '[aiu]'| grep l | tr l L | tr '[a-z]' . | sort | uniq -c | sort -rn
